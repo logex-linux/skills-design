@@ -1,0 +1,4 @@
+interface:
+  display_name: "Web-style PPTX Designer"
+  short_description: "像设计网页一样规划、生成并校验精美可编辑的横屏或竖屏 PPTX"
+  default_prompt: "Use $web-style-pptx to turn my materials into a polished, editable PowerPoint deck."
