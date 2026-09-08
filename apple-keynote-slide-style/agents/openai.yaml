@@ -1,0 +1,8 @@
+interface:
+  display_name: "Apple Keynote Slide Style"
+  short_description: "用发布会式叙事、网格、材质和动效制作产品发布 deck"
+  brand_color: "#2997FF"
+  default_prompt: "Use $apple-keynote-slide-style to design or review a product-launch slide deck with Apple-inspired narrative pacing, typography, visual hierarchy, motion, and accessibility."
+
+policy:
+  allow_implicit_invocation: true
