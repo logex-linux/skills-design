@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>清野运营台 · B端工作台原型</title>
+<style>
+:root{
+  --brand:#0FB5D6; --brand-h:#0A9BBA; --brand-10:#E6F9FD; --brand-ink:#04262F;
+  --ink:#111318; --ink-2:#5A6070; --ink-3:#9AA0AE; --disabled:#C2C7D0;
+  --line:#EDEFF3; --bg:#F5F6FA; --card:#fff; --head:#FAFBFC;
+  --ok:#12B76A; --ok-10:#E7F8F0; --warn:#F79009; --warn-10:#FEF3E2;
+  --err:#F04438; --err-10:#FDECEA;
+  --pos:#F5222D;  /* 涨 = 红（中国习惯） */
+  --neg:#22C55E;  /* 跌 = 绿 */
+  --font:-apple-system,"PingFang SC","Source Han Sans SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --num:"SF Mono","Inter",ui-monospace,"Helvetica Neue",monospace;
+  --r-sm:10px; --r-md:12px; --r-lg:16px;
+  --sh-1:0 1px 2px rgba(16,24,40,.05);
+  --ease:cubic-bezier(.22,1,.36,1); --t-base:200ms;
+  --sb-w:232px; --sb-w-min:64px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px}
+@media (prefers-reduced-motion:reduce){*{transition-duration:0ms!important;animation-duration:0ms!important}}
+button{font-family:var(--font)}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#D7DBE3;border-radius:9px;border:2px solid var(--bg)}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ====== 布局 ====== */
+.shell{display:flex;height:100%;min-width:1180px}
+.sidebar{width:var(--sb-w);flex:none;background:var(--card);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;transition:width var(--t-base) var(--ease);overflow:hidden}
+.sidebar.min{width:var(--sb-w-min)}
+.brand{display:flex;align-items:center;gap:10px;height:60px;flex:none;padding:0 18px;border-bottom:1px solid var(--line)}
+.brand .logo{width:30px;height:30px;border-radius:9px;flex:none;background:linear-gradient(135deg,var(--brand),#7FE7FF);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px}
+.brand .bt{white-space:nowrap;transition:opacity var(--t-base)}
+.brand .bt b{display:block;font-size:14.5px;font-weight:700;line-height:1.2}
+.brand .bt span{font-size:10.5px;color:var(--ink-3);letter-spacing:.14em;text-transform:uppercase}
+.sidebar.min .brand .bt,.sidebar.min .nav .lb,.sidebar.min .sb-foot span{opacity:0;pointer-events:none}
+.nav{flex:1;overflow-y:auto;padding:12px 10px}
+.nav .grp{font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.08em;padding:14px 10px 6px;white-space:nowrap}
+.nav a{display:flex;align-items:center;gap:11px;height:42px;padding:0 11px;border-radius:var(--r-sm);
+  color:var(--ink-2);text-decoration:none;cursor:pointer;white-space:nowrap;transition:all var(--t-base);position:relative;margin-bottom:2px}
+.nav a svg{flex:none;color:var(--ink-3);transition:color var(--t-base)}
+.nav a .lb{font-size:14px;font-weight:500}
+.nav a:hover{background:var(--bg)}
+.nav a:hover svg{color:var(--ink-2)}
+.nav a.on{background:var(--brand-10);color:var(--brand-h);font-weight:600}
+.nav a.on svg{color:var(--brand)}
+.nav a .tag{margin-left:auto;background:var(--err);color:#fff;font-size:10px;font-weight:700;
+  min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.nav a .tag.gray{background:#E4E7ED;color:var(--ink-2)}
+.sb-foot{border-top:1px solid var(--line);padding:12px 10px;flex:none}
+.sb-foot .btn-min{width:100%;height:38px;border:0;background:transparent;border-radius:var(--r-sm);cursor:pointer;
+  display:flex;align-items:center;gap:11px;padding:0 11px;color:var(--ink-3);font-size:13px;white-space:nowrap}
+.sb-foot .btn-min:hover{background:var(--bg);color:var(--ink-2)}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:60px;flex:none;background:var(--card);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;padding:0 24px}
+.crumb{font-size:13px;color:var(--ink-3);white-space:nowrap}
+.crumb b{color:var(--ink);font-weight:600}
+.tsel{margin-left:auto;display:flex;background:var(--bg);border-radius:var(--r-sm);padding:3px;gap:2px}
+.tsel button{height:30px;padding:0 14px;border:0;background:transparent;border-radius:7px;cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--ink-2);transition:all var(--t-base)}
+.tsel button.on{background:var(--card);color:var(--brand-h);box-shadow:var(--sh-1)}
+.search{height:36px;border-radius:var(--r-sm);background:var(--bg);border:1px solid transparent;display:flex;
+  align-items:center;gap:8px;padding:0 12px;width:230px;color:var(--ink-3);transition:all var(--t-base)}
+.search:focus-within{background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,181,214,.13)}
+.search input{border:0;background:transparent;outline:none;font:13.5px var(--font);color:var(--ink);width:100%}
+.search input::placeholder{color:var(--ink-3)}
+.ico{width:36px;height:36px;flex:none;border-radius:var(--r-sm);border:0;background:transparent;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;color:var(--ink-2);position:relative;transition:background var(--t-base)}
+.ico:hover{background:var(--bg)}
+.ico .d{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:9px;background:var(--err);border:2px solid var(--card)}
+.me{display:flex;align-items:center;gap:9px;padding:4px 8px 4px 4px;border-radius:999px;cursor:pointer;transition:background var(--t-base)}
+.me:hover{background:var(--bg)}
+.me .av{width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,var(--brand),#7FE7FF);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700}
+.me b{font-size:13.5px;font-weight:600}
+
+.content{flex:1;overflow-y:auto;padding:22px 24px 40px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+.page-head h1{font-size:22px;font-weight:700;margin:0 0 5px;letter-spacing:-.01em}
+.page-head p{margin:0;font-size:13px;color:var(--ink-3)}
+.page-head .acts{display:flex;gap:9px}
+
+/* ====== 按钮 ====== */
+.btn{height:36px;padding:0 16px;border-radius:var(--r-sm);border:0;background:var(--brand);color:#fff;
+  font:600 13.5px var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:background var(--t-base),transform 120ms var(--ease);white-space:nowrap}
+.btn:hover{background:var(--brand-h)}
+.btn:active{transform:scale(.98)}
+.btn.sec{background:var(--brand-10);color:var(--brand-h)}
+.btn.sec:hover{background:#D5F3FA}
+.btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink-2)}
+.btn.ghost:hover{background:var(--bg)}
+.btn.sm{height:30px;padding:0 12px;font-size:12.5px}
+.btn.dis,.btn:disabled{background:#EDEFF3;color:var(--disabled);cursor:not-allowed;transform:none}
+
+/* ====== 卡片 ====== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-1)}
+.card-h{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line)}
+.card-h h3{font-size:15px;font-weight:600;margin:0}
+.card-h .sub{font-size:12px;color:var(--ink-3);margin-left:8px;font-weight:400}
+.more{border:0;background:transparent;cursor:pointer;color:var(--ink-3);padding:4px;border-radius:6px;line-height:0}
+.more:hover{background:var(--bg)}
+
+/* ====== KPI ====== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.kpi{padding:17px 18px;position:relative;transition:box-shadow var(--t-base)}
+.kpi:hover{box-shadow:0 4px 14px rgba(16,24,40,.08)}
+.kpi .t{font-size:12.5px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:6px}
+.kpi .v{font-family:var(--num);font-size:30px;font-weight:700;line-height:1;margin:12px 0 9px;letter-spacing:-.02em}
+.kpi .v em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink-3);margin-left:3px}
+.kpi .d{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:5px}
+.kpi .d .lb{color:var(--ink-3);font-weight:400}
+.up{color:var(--pos)} .down{color:var(--neg)}
+.spark{position:absolute;right:16px;top:16px;opacity:.5}
+
+/* ====== 图表区 ====== */
+.charts{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+.chart-body{padding:16px 18px 10px;position:relative}
+.legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink-2);padding:0 18px 14px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}
+#line{cursor:crosshair;display:block;width:100%;height:auto}
+.tip{position:absolute;pointer-events:none;background:rgba(17,19,24,.94);color:#fff;border-radius:9px;
+  padding:9px 12px;font-size:12px;line-height:1.55;opacity:0;transform:translate(-50%,-118%);transition:opacity 120ms;white-space:nowrap;z-index:9}
+.tip.on{opacity:1}
+.tip b{font-family:var(--num);font-size:14px}
+.tip .k{color:rgba(255,255,255,.6)}
+.donut-wrap{display:flex;align-items:center;gap:14px;padding:8px 18px 18px}
+.donut{position:relative;flex:none}
+.donut .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut .ctr b{font-family:var(--num);font-size:19px;font-weight:700;line-height:1}
+.donut .ctr span{font-size:10.5px;color:var(--ink-3);margin-top:3px}
+.dlegend{flex:1;display:flex;flex-direction:column;gap:11px}
+.dlegend div{display:flex;align-items:center;font-size:13px;gap:8px}
+.dlegend i{width:9px;height:9px;border-radius:3px;flex:none}
+.dlegend .dv{margin-left:auto;font-family:var(--num);font-weight:600}
+
+/* 条形排行 */
+.rank{padding:8px 18px 18px;display:flex;flex-direction:column;gap:13px}
+.rank .r{display:grid;grid-template-columns:92px 1fr 76px;align-items:center;gap:12px;font-size:13px}
+.rank .r .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.rank .bar{height:9px;border-radius:9px;background:var(--bg);overflow:hidden}
+.rank .bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#6FDCEC,var(--brand));
+  width:0;transition:width .8s var(--ease)}
+.rank .vv{text-align:right;font-family:var(--num);font-weight:600}
+
+/* ====== 表格 ====== */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:960px}
+thead th{background:var(--head);color:var(--ink-2);font-size:13px;font-weight:600;text-align:left;
+  padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;user-select:none}
+thead th.s{cursor:pointer;position:relative}
+thead th.s:hover{color:var(--ink)}
+thead th .ar{display:inline-block;margin-left:5px;font-size:10px;color:var(--disabled);transition:color var(--t-base)}
+thead th.asc .ar,thead th.desc .ar{color:var(--brand)}
+thead th.num-c{text-align:right}
+tbody td{padding:0 14px;height:48px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td.num-c{text-align:right;font-family:var(--num);font-variant-numeric:tabular-nums}
+tbody tr:hover td{background:var(--head)}
+tbody tr.sel td{background:var(--brand-10)}
+tbody tr:last-child td{border-bottom:0}
+tbody td .cnm{font-weight:600}
+tbody td .cid{font-family:var(--num);color:var(--ink-3);font-size:12.5px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.badge i{width:6px;height:6px;border-radius:9px;background:currentColor;flex:none}
+.b-ok{color:#0A7A47} .b-warn{color:#A85A00} .b-err{color:#C0281C} .b-off{color:var(--ink-3)}
+.delta{font-family:var(--num);font-weight:600;font-size:13px}
+.op{color:var(--brand-h);font-weight:600;cursor:pointer;background:none;border:0;padding:0;font-size:13.5px}
+.op:hover{text-decoration:underline}
+.op+.op{margin-left:14px}
+input[type=checkbox]{width:15px;height:15px;accent-color:var(--brand);cursor:pointer}
+.tfoot{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3);flex-wrap:wrap;gap:10px}
+.pager{display:flex;gap:4px;align-items:center}
+.pager button{min-width:32px;height:32px;border:1px solid var(--line);background:var(--card);border-radius:8px;
+  cursor:pointer;font-size:13px;color:var(--ink-2);transition:all var(--t-base);font-family:var(--font)}
+.pager button:hover:not(:disabled){border-color:var(--brand);color:var(--brand-h)}
+.pager button.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.pager button:disabled{color:var(--disabled);cursor:not-allowed}
+
+/* 空态 */
+.empty{padding:64px 20px;text-align:center}
+.empty h4{font-size:15px;font-weight:600;margin:16px 0 6px}
+.empty p{font-size:13px;color:var(--ink-3);margin:0 0 18px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:36px;transform:translate(-50%,14px);background:rgba(17,19,24,.94);
+  color:#fff;font-size:13.5px;padding:11px 18px;border-radius:var(--r-sm);opacity:0;pointer-events:none;
+  transition:all var(--t-base);z-index:99}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ================= 侧边栏 ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">清</div>
+      <div class="bt"><b>清野运营台</b><span>Camping Ops</span></div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="grp">经营</div>
+      <a class="on" data-page="overview">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="8.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="5" rx="2"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="2"/><rect x="13.5" y="11" width="7.5" height="10" rx="2"/></svg>
+        <span class="lb">数据概览</span>
+      </a>
+      <a data-page="orders">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>
+        <span class="lb">订单管理</span><span class="tag">12</span>
+      </a>
+      <a data-page="camps">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18L12 5 3 20Z"/><path d="M12 5v15"/></svg>
+        <span class="lb">营地管理</span>
+      </a>
+      <a data-page="calendar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <span class="lb">档期日历</span>
+      </a>
+      <div class="grp">客户</div>
+      <a data-page="users">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/></svg>
+        <span class="lb">用户管理</span>
+      </a>
+      <a data-page="reviews">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12Z"/></svg>
+        <span class="lb">评价管理</span><span class="tag">3</span>
+      </a>
+      <div class="grp">财务与设置</div>
+      <a data-page="finance">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M16.5 7.5c0-1.9-2-3-4.5-3s-4.5 1-4.5 3S9 11 12 11.5s4.5 1.6 4.5 3.5-2 3.5-4.5 3.5-4.5-1.2-4.5-3.2"/></svg>
+        <span class="lb">财务结算</span>
+      </a>
+      <a data-page="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-3-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 2.9 15H2.7a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-3l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V2.7a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        <span class="lb">系统设置</span>
+      </a>
+    </nav>
+    <div class="sb-foot">
+      <button class="btn-min" id="minBtn" aria-label="收起侧边栏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <span>收起侧边栏</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= 主区 ================= -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">经营 / <b id="crumb">数据概览</b></div>
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="globalSearch" placeholder="搜索营地 / 订单号 / 用户" aria-label="全局搜索">
+      </div>
+      <div class="tsel" id="tsel">
+        <button data-range="7">近 7 天</button>
+        <button class="on" data-range="30">近 30 天</button>
+        <button data-range="90">近 90 天</button>
+      </div>
+      <button class="ico" aria-label="通知">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-2.5 8-2.5 8h17S18 15 18 8Z"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>
+        <span class="d"></span>
+      </button>
+      <div class="me">
+        <div class="av">陈</div><b>陈运营</b>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA0AE" stroke-width="2.6" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+    </header>
+
+    <div class="content" id="content">
+      <!-- ===== KPI ===== -->
+      <div class="page-head">
+        <div>
+          <h1>数据概览</h1>
+          <p id="rangeNote">统计周期：近 30 天 · 数据更新于 2 分钟前</p>
+        </div>
+        <div class="acts">
+          <button class="btn ghost" id="refreshBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>
+            刷新
+          </button>
+          <button class="btn" id="exportBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/></svg>
+            导出报表
+          </button>
+        </div>
+      </div>
+
+      <section class="kpis" id="kpis"></section>
+
+      <!-- ===== 图表区 ===== -->
+      <section class="charts">
+        <div class="card">
+          <div class="card-h">
+            <h3>营收趋势<span class="sub" id="trendSub">近 30 天 · 单位：千元</span></h3>
+            <button class="more" aria-label="更多">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+            </button>
+          </div>
+          <div class="chart-body">
+            <svg id="line" viewBox="0 0 720 220" preserveAspectRatio="none" role="img" aria-label="营收趋势折线图"></svg>
+            <div class="tip" id="tip"></div>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--brand)"></i>本期营收</span>
+            <span><i style="background:#D9DCE3"></i>上期营收</span>
+            <span style="margin-left:auto;color:var(--ink-3)" id="trendSum"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h3>渠道分布</h3>
+            <button class="more" aria-label="更多">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+            </button>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg width="126" height="126" viewBox="0 0 126 126" id="donut"></svg>
+              <div class="ctr"><b id="donutTotal">8,432</b><span>总订单</span></div>
+            </div>
+            <div class="dlegend" id="dlegend"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 排行 + 表格 ===== -->
+      <section class="charts" style="grid-template-columns:1fr 2fr;align-items:start;margin-bottom:16px">
+        <div class="card">
+          <div class="card-h"><h3>营地营收 TOP5</h3><span class="sub">近 30 天</span></div>
+          <div class="rank" id="rank"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <h3>订单明细<span class="sub" id="tableSub"></span></h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="statusFilter" aria-label="按状态筛选"
+                style="height:30px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font:13px var(--font);color:var(--ink-2);background:var(--card);outline:none">
+                <option value="">全部状态</option>
+                <option value="待入住">待入住</option>
+                <option value="已完成">已完成</option>
+                <option value="退款中">退款中</option>
+                <option value="已取消">已取消</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:44px"><input type="checkbox" id="checkAll" aria-label="全选"></th>
+                  <th class="s" data-k="id" style="width:150px">订单号 <span class="ar">↕</span></th>
+                  <th class="s" data-k="camp">营地 <span class="ar">↕</span></th>
+                  <th class="s" data-k="city" style="width:86px">城市 <span class="ar">↕</span></th>
+                  <th class="s" data-k="date" style="width:104px">入住日期 <span class="ar">↕</span></th>
+                  <th class="s num-c" data-k="nights" style="width:76px">晚数 <span class="ar">↕</span></th>
+                  <th class="s num-c" data-k="amount" style="width:104px">金额 <span class="ar">↕</span></th>
+                  <th class="s" data-k="status" style="width:100px">状态 <span class="ar">↕</span></th>
+                  <th style="width:96px;text-align:right">操作</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <div class="tfoot">
+            <span id="selInfo">已选 0 项 · 共 0 条</span>
+            <div class="pager" id="pager"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const fmt = n => n.toLocaleString('zh-CN');
+const money = n => '¥' + n.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+/* ================= 数据 ================= */
+const RANGES = {
+  7:  {kpis:[{t:'总营收',v:302480,u:'元',d:9.4,up:1},{t:'订单量',v:2016,u:'单',d:6.2,up:1},{t:'入住率',v:81.2,u:'%',d:3.1,up:1},{t:'客单价',v:150,u:'元',d:2.4,up:0}], days:['9/6','9/7','9/8','9/9','9/10','9/11','9/12'], v:[38,44,41,52,47,58,62]},
+  30: {kpis:[{t:'总营收',v:1284600,u:'元',d:12.4,up:1},{t:'订单量',v:8432,u:'单',d:8.1,up:1},{t:'入住率',v:78.4,u:'%',d:2.3,up:0},{t:'客单价',v:152,u:'元',d:4.6,up:1}], days:['8/14','8/17','8/20','8/23','8/26','8/29','9/1','9/4','9/6','9/8','9/10','9/12'], v:[92,108,86,124,140,118,156,132,168,152,186,204]},
+  90: {kpis:[{t:'总营收',v:3642800,u:'元',d:18.7,up:1},{t:'订单量',v:24180,u:'单',d:14.2,up:1},{t:'入住率',v:74.8,u:'%',d:5.6,up:0},{t:'客单价',v:149,u:'元',d:1.8,up:1}], days:['6/15','7/1','7/15','8/1','8/15','9/1','9/12'], v:[186,224,268,246,312,338,296]}
+};
+const CHANNELS = [
+  {n:'清野 App', p:38, c:'var(--brand)'},
+  {n:'微信小程序', p:31, c:'#7FE7FF'},
+  {n:'线下门店', p:19, c:'#0A9BBA'},
+  {n:'携程 / 飞猪', p:12, c:'#C9E9F1'}
+];
+const RANKS = [
+  {n:'青野湖营地', v:1286}, {n:'山野集营地', v:942}, {n:'溪谷浅滩营地', v:768},
+  {n:'松林星空营地', v:604}, {n:'白鹭湾营地', v:412}
+];
+const ORDERS = [
+  {id:'QY202609120041', camp:'青野湖营地', city:'杭州', date:'2026-09-12', nights:2, amount:262, status:'待入住'},
+  {id:'QY202609110038', camp:'山野集营地', city:'成都', date:'2026-09-11', nights:1, amount:174, status:'待入住'},
+  {id:'QY202609100035', camp:'溪谷浅滩营地', city:'武汉', date:'2026-09-10', nights:3, amount:312, status:'已完成'},
+  {id:'QY202609090029', camp:'松林星空营地', city:'北京', date:'2026-09-09', nights:1, amount:264, status:'已完成'},
+  {id:'QY202609080026', camp:'青野湖营地', city:'杭州', date:'2026-09-08', nights:2, amount:262, status:'退款中'},
+  {id:'QY202609070022', camp:'白鹭湾营地', city:'苏州', date:'2026-09-07', nights:1, amount:148, status:'已完成'},
+  {id:'QY202609060019', camp:'山野集营地', city:'成都', date:'2026-09-06', nights:2, amount:348, status:'已取消'},
+  {id:'QY202609050015', camp:'溪谷浅滩营地', city:'武汉', date:'2026-09-05', nights:1, amount:104, status:'已完成'},
+  {id:'QY202609040012', camp:'青野湖营地', city:'杭州', date:'2026-09-04', nights:2, amount:262, status:'已完成'},
+  {id:'QY202609030009', camp:'松林星空营地', city:'北京', date:'2026-09-03', nights:2, amount:528, status:'待入住'},
+  {id:'QY202609020006', camp:'白鹭湾营地', city:'苏州', date:'2026-09-02', nights:1, amount:148, status:'已完成'},
+  {id:'QY202609010003', camp:'山野集营地', city:'成都', date:'2026-09-01', nights:3, amount:522, status:'已完成'}
+];
+
+/* ================= KPI ================= */
+function renderKpis(range){
+  $('#kpis').innerHTML = RANGES[range].kpis.map(k => {
+    const cls = k.up ? 'up' : 'down', ar = k.up ? '↑' : '↓';
+    const val = k.u === '%' ? k.v : (k.v >= 10000 ? k.v.toLocaleString('zh-CN') : k.v.toLocaleString('zh-CN'));
+    return `<div class="card kpi">
+      <div class="t">${k.t}</div>
+      <div class="v" data-v="${k.v}">0<em>${k.u}</em></div>
+      <div class="d ${cls}"><span>${ar} ${k.d}%</span><span class="lb">较上期</span></div>
+      <svg class="spark" width="52" height="24" viewBox="0 0 52 24" fill="none">
+        <path d="M1 18 L10 13 L19 16 L28 8 L37 11 L46 4 L51 6" stroke="${k.up ? 'var(--pos)' : 'var(--neg)'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>`;
+  }).join('');
+  // 数字滚动
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $$('#kpis .v').forEach(el => {
+    const target = +el.dataset.v, unit = el.querySelector('em').outerHTML;
+    const paint = n => {
+      const txt = target >= 10000 ? Math.round(n).toLocaleString('zh-CN')
+                : (target % 1 ? n.toFixed(1) : Math.round(n).toLocaleString('zh-CN'));
+      el.innerHTML = txt + unit;
+    };
+    if(reduce){ paint(target); return; }
+    const dur = 520, st = performance.now();
+    (function step(now){
+      const p = Math.min(1, (now - st) / dur), e = 1 - Math.pow(1 - p, 3);
+      paint(target * e);
+      if(p < 1) requestAnimationFrame(step); else paint(target);
+    })(st);
+  });
+}
+
+/* ================= 折线图 ================= */
+function renderLine(range){
+  const d = RANGES[range], vals = d.v, labels = d.days;
+  const W = 720, H = 220, L = 48, R = 16, T = 16, B = 30;
+  const iw = W - L - R, ih = H - T - B;
+  const max = Math.ceil(Math.max(...vals) / 40) * 40 || 40;
+  const x = i => L + (vals.length === 1 ? iw / 2 : i * iw / (vals.length - 1));
+  const y = v => T + ih - (v / max) * ih;
+  // 上期 = 本期 × 0.88 波动
+  const prev = vals.map((v, i) => Math.round(v * (0.82 + ((i * 37) % 11) / 100)));
+
+  const has = (arr, v) => arr.includes(v);
+  let g = '';
+  // 网格 + Y 轴标签
+  for(let k = 0; k <= 4; k++){
+    const yy = T + (ih / 4) * k, val = Math.round(max - (max / 4) * k);
+    g += `<line x1="${L}" y1="${yy}" x2="${W - R}" y2="${yy}" stroke="#EDEFF3" stroke-width="1"/>`;
+    g += `<text x="${L - 1}" y="${yy + 4}" text-anchor="end" font-size="11" fill="#9AA0AE" font-family="var(--num)">${val}</text>`;
+  }
+  const pts = arr => arr.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+  const area = `${pts(vals)} ${x(vals.length - 1)},${T + ih} ${L},${T + ih}`;
+
+  let dots = '', hover = '';
+  vals.forEach((v, i) => {
+    dots += `<circle cx="${x(i)}" cy="${y(v)}" r="3.5" fill="#fff" stroke="var(--brand)" stroke-width="2.2"/>`;
+    // X 轴标签：只显示首、中、尾 + 每 3 个
+    if(i % 3 === 0 || i === vals.length - 1){
+      g += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#9AA0AE">${labels[i]}</text>`;
+    }
+    hover += `<rect class="hit" x="${x(i) - iw / (vals.length * 2)}" y="${T}" width="${iw / vals.length}" height="${ih}" fill="transparent"
+      data-cx="${x(i)}" data-cy="${y(v)}" data-lb="${labels[i]}" data-v="${v}" data-p="${prev[i]}"/>`;
+  });
+
+  $('#line').innerHTML = `
+    <defs>
+      <linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--brand)" stop-opacity=".26"/>
+        <stop offset="1" stop-color="var(--brand)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${g}
+    <polyline points="${pts(prev)}" fill="none" stroke="#D9DCE3" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>
+    <polygon points="${area}" fill="url(#ga)"/>
+    <polyline points="${pts(vals)}" fill="none" stroke="var(--brand)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+    ${hover}`;
+
+  $('#trendSum').textContent = `本期合计 ${fmt(vals.reduce((a, b) => a + b, 0))} 千元`;
+  $('#trendSub').textContent = `近 ${range} 天 · 单位：千元`;
+
+  // hover tooltip
+  const svg = $('#line'), tip = $('#tip'), box = svg.getBoundingClientRect();
+  svg.onmousemove = e => {
+    const hit = e.target.closest('.hit'); if(!hit) return;
+    const r = svg.getBoundingClientRect();
+    const scaleX = r.width / W, scaleY = r.height / H;
+    tip.classList.add('on');
+    tip.style.left = (+hit.dataset.cx * scaleX) + 'px';
+    tip.style.top = (+hit.dataset.cy * scaleY + (r.height - box.height) ) + 'px';
+    const diff = +hit.dataset.v - +hit.dataset.p;
+    tip.innerHTML = `<div class="k">${hit.dataset.lb}</div><b>${hit.dataset.v} 千元</b>
+      <div class="k">同比 ${diff >= 0 ? '+' : ''}${diff} 千元</div>`;
+  };
+  svg.onmouseleave = () => tip.classList.remove('on');
+}
+
+/* ================= 环形图 ================= */
+function renderDonut(){
+  const R = 50, C = 2 * Math.PI * R;
+  let off = 0, seg = '';
+  CHANNELS.forEach(c => {
+    const len = C * c.p / 100;
+    seg += `<circle cx="63" cy="63" r="${R}" fill="none" stroke="${c.c}" stroke-width="16"
+      stroke-dasharray="${len - 3} ${C - len + 3}" stroke-dashoffset="${-off}" transform="rotate(-90 63 63)" stroke-linecap="round"/>`;
+    off += len;
+  });
+  $('#donut').innerHTML = `<circle cx="63" cy="63" r="${R}" fill="none" stroke="#F5F6FA" stroke-width="16"/>${seg}`;
+  $('#dlegend').innerHTML = CHANNELS.map(c => `<div><i style="background:${c.c}"></i>${c.n}<span class="dv">${c.p}%</span></div>`).join('');
+}
+
+/* ================= 排行 ================= */
+function renderRank(){
+  const max = RANKS[0].v;
+  $('#rank').innerHTML = RANKS.map((r, i) => `
+    <div class="r">
+      <span class="nm">${i + 1}. ${r.n}</span>
+      <span class="bar"><i data-w="${Math.round(r.v / max * 100)}"></i></span>
+      <span class="vv">${fmt(r.v)}</span>
+    </div>`).join('');
+  requestAnimationFrame(() => $$('#rank .bar i').forEach(b => b.style.width = b.dataset.w + '%'));
+}
+
+/* ================= 表格 ================= */
+const T = {sortK:'date', sortDir:-1, kw:'', status:'', page:1, size:6, sel:new Set()};
+const STATUS_CLS = {'待入住':'b-warn','已完成':'b-ok','退款中':'b-err','已取消':'b-off'};
+
+function filtered(){
+  let rows = ORDERS.filter(o =>
+    (!T.status || o.status === T.status) &&
+    (!T.kw || (o.id + o.camp + o.city).toLowerCase().includes(T.kw.toLowerCase()))
+  );
+  const k = T.sortK;
+  rows.sort((a, b) => {
+    const A = a[k], B = b[k];
+    if(typeof A === 'number') return (A - B) * T.sortDir;
+    return String(A).localeCompare(String(B), 'zh') * T.sortDir;
+  });
+  return rows;
+}
+function renderTable(){
+  const rows = filtered();
+  const pages = Math.max(1, Math.ceil(rows.length / T.size));
+  T.page = Math.min(T.page, pages);
+  const slice = rows.slice((T.page - 1) * T.size, T.page * T.size);
+
+  if(!slice.length){
+    $('#tbody').innerHTML = `<tr><td colspan="9">
+      <div class="empty">
+        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#DCEBF1" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/><path d="M8.6 11h4.8"/></svg>
+        <h4>没有符合条件的订单</h4>
+        <p>换个关键词或清空筛选条件再试试</p>
+        <button class="btn sec" onclick="clearFilter()">清空筛选</button>
+      </div></td></tr>`;
+  } else {
+    $('#tbody').innerHTML = slice.map(o => `
+      <tr data-id="${o.id}" class="${T.sel.has(o.id) ? 'sel' : ''}">
+        <td><input type="checkbox" ${T.sel.has(o.id) ? 'checked' : ''} aria-label="选择 ${o.id}"></td>
+        <td><span class="cid">${o.id}</span></td>
+        <td><span class="cnm">${o.camp}</span></td>
+        <td>${o.city}</td>
+        <td class="num-c" style="text-align:left">${o.date}</td>
+        <td class="num-c">${o.nights}</td>
+        <td class="num-c">${money(o.amount)}</td>
+        <td><span class="badge ${STATUS_CLS[o.status]}"><i></i>${o.status}</span></td>
+        <td style="text-align:right"><button class="op">详情</button>${o.status === '待入住' ? '<button class="op">核销</button>' : ''}</td>
+      </tr>`).join('');
+  }
+
+  // 表头排序态
+  $$('thead th.s').forEach(th => {
+    th.classList.remove('asc', 'desc');
+    th.querySelector('.ar').textContent = '↕';
+    if(th.dataset.k === T.sortK){
+      th.classList.add(T.sortDir === 1 ? 'asc' : 'desc');
+      th.querySelector('.ar').textContent = T.sortDir === 1 ? '↑' : '↓';
+    }
+  });
+
+  $('#selInfo').textContent = `已选 ${T.sel.size} 项 · 共 ${rows.length} 条`;
+  $('#tableSub').textContent = T.kw || T.status ? `已筛选 ${rows.length} / ${ORDERS.length} 条` : `共 ${ORDERS.length} 条`;
+
+  // 分页
+  let p = `<button ${T.page === 1 ? 'disabled' : ''} data-p="${T.page - 1}" aria-label="上一页">‹</button>`;
+  for(let i = 1; i <= pages; i++) p += `<button class="${i === T.page ? 'on' : ''}" data-p="${i}">${i}</button>`;
+  p += `<button ${T.page === pages ? 'disabled' : ''} data-p="${T.page + 1}" aria-label="下一页">›</button>`;
+  $('#pager').innerHTML = p;
+}
+window.clearFilter = () => { T.kw = ''; T.status = ''; T.page = 1; $('#globalSearch').value = ''; $('#statusFilter').value = ''; renderTable(); };
+
+/* ================= 事件 ================= */
+$('#minBtn').onclick = () => $('#sidebar').classList.toggle('min');
+$('#minBtn').querySelector('span').textContent = '收起侧边栏';
+
+$('#nav').addEventListener('click', e => {
+  const a = e.target.closest('a[data-page]'); if(!a) return;
+  const name = a.querySelector('.lb').textContent;
+  $$('#nav a').forEach(x => x.classList.remove('on'));
+  a.classList.add('on');
+  $('#crumb').textContent = name;
+  if(a.dataset.page !== 'overview'){
+    toast(`「${name}」模块 — 演示仅实现「数据概览」`);
+  }
+});
+
+$('#tsel').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  $$('#tsel button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  const r = +b.dataset.range;
+  $('#rangeNote').textContent = `统计周期：近 ${r} 天 · 数据更新于 2 分钟前`;
+  renderKpis(r); renderLine(r);
+  $('#donutTotal').textContent = fmt(Math.round(8432 * r / 30));
+});
+
+$('#globalSearch').addEventListener('input', e => { T.kw = e.target.value.trim(); T.page = 1; renderTable(); });
+$('#statusFilter').addEventListener('change', e => { T.status = e.target.value; T.page = 1; renderTable(); });
+$('#checkAll').addEventListener('change', e => {
+  const rows = filtered().slice((T.page - 1) * T.size, T.page * T.size);
+  rows.forEach(o => e.target.checked ? T.sel.add(o.id) : T.sel.delete(o.id));
+  renderTable();
+});
+
+document.querySelector('table').addEventListener('click', e => {
+  const th = e.target.closest('th.s');
+  if(th){
+    const k = th.dataset.k;
+    if(T.sortK === k) T.sortDir *= -1; else { T.sortK = k; T.sortDir = k === 'id' || k === 'camp' || k === 'city' || k === 'status' ? 1 : -1; }
+    renderTable(); return;
+  }
+  const cb = e.target.closest('tbody input[type=checkbox]');
+  if(cb){
+    const id = cb.closest('tr').dataset.id;
+    cb.checked ? T.sel.add(id) : T.sel.delete(id);
+    renderTable(); return;
+  }
+  if(e.target.closest('.op')) toast('演示环境：' + e.target.textContent + '功能未接入');
+});
+$('#pager').addEventListener('click', e => {
+  const b = e.target.closest('button[data-p]'); if(!b || b.disabled) return;
+  T.page = +b.dataset.p; renderTable();
+});
+
+$('#refreshBtn').onclick = function(){
+  const r = +$('#tsel .on').dataset.range;
+  renderKpis(r); renderLine(r); renderTable();
+  toast('数据已刷新');
+};
+$('#exportBtn').onclick = () => toast('报表导出任务已创建，稍后可在通知中心下载');
+
+let tt;
+function toast(m){ const el = $('#toast'); el.textContent = m; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2000); }
+
+/* ================= 启动 ================= */
+renderKpis(30);
+renderLine(30);
+renderDonut();
+renderRank();
+renderTable();
+window.addEventListener('resize', () => { const r = +$('#tsel .on').dataset.range; renderLine(r); });
+</script>
+</body>
+</html>

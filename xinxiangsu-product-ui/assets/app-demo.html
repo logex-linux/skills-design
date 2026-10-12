@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>清野 App · 可交互原型</title>
+<style>
+:root{
+  --brand:#0FB5D6; --brand-h:#0A9BBA; --brand-10:#E6F9FD; --brand-ink:#04262F;
+  --ink:#111318; --ink-2:#5A6070; --ink-3:#9AA0AE; --disabled:#C2C7D0;
+  --line:#EDEFF3; --bg:#F5F6FA; --card:#fff;
+  --ok:#12B76A; --ok-10:#E7F8F0; --warn:#F79009; --warn-10:#FEF3E2;
+  --err:#F04438; --err-10:#FDECEA; --pos:#F5222D; --neg:#22C55E;
+  --font:-apple-system,"PingFang SC","Source Han Sans SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --num:"SF Mono","Inter",ui-monospace,"Helvetica Neue",monospace;
+  --r-sm:10px; --r-md:14px; --r-lg:18px;
+  --sh-2:0 4px 12px rgba(16,24,40,.07); --sh-3:0 8px 24px rgba(16,24,40,.10);
+  --ease:cubic-bezier(.22,1,.36,1); --t-base:200ms; --t-page:260ms;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:#E4E7ED; font-family:var(--font); color:var(--ink);
+  display:flex; align-items:center; justify-content:center; padding:28px;
+  -webkit-font-smoothing:antialiased;
+}
+@media (prefers-reduced-motion:reduce){ *{transition-duration:0ms!important;animation-duration:0ms!important} }
+
+/* ===== 机身 ===== */
+.phone{
+  width:390px; height:844px; background:#000; border-radius:46px; padding:11px;
+  box-shadow:0 40px 80px rgba(16,24,40,.28); position:relative; flex:none;
+}
+.phone::after{content:"";position:absolute;left:50%;bottom:9px;transform:translateX(-50%);
+  width:126px;height:5px;border-radius:9px;background:rgba(255,255,255,.28)}
+.screen{width:100%;height:100%;background:var(--bg);border-radius:36px;overflow:hidden;
+  position:relative;display:flex;flex-direction:column}
+.notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:112px;height:30px;
+  background:#000;border-radius:0 0 18px 18px;z-index:60}
+.statusbar{height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font:600 14px/1 var(--font);color:var(--ink);position:relative;z-index:50}
+.statusbar.dark{color:#fff}
+.sb-r{display:flex;gap:5px;align-items:center}
+.sb-r svg{display:block}
+
+/* ===== 视图层 ===== */
+.viewport{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);
+  transform:translateX(100%);opacity:0;pointer-events:none;
+  transition:transform var(--t-page) var(--ease),opacity var(--t-page) var(--ease)}
+.view.active{transform:translateX(0);opacity:1;pointer-events:auto;z-index:2}
+.view.behind{transform:translateX(-22%);opacity:.6;z-index:1}
+.view.flat{transform:none}
+.scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:4px}
+.scroll::-webkit-scrollbar-thumb{background:#D7DBE3;border-radius:9px}
+
+/* ===== 通用块 ===== */
+.pad{padding:0 20px}
+.bar{flex:none;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--card);
+  border-bottom:1px solid var(--line);position:relative;z-index:5}
+.bar h1{font-size:17px;font-weight:600;margin:0;flex:1;text-align:center}
+.iconbtn{width:44px;height:44px;flex:none;border:0;background:transparent;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);transition:background var(--t-base)}
+.iconbtn:active{background:#F0F2F6}
+.card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh-2)}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;
+  background:var(--brand-10);color:var(--brand-h);font-size:11px;font-weight:600;white-space:nowrap}
+.pill.gray{background:#F0F2F6;color:var(--ink-2)}
+.pill.ok{background:var(--ok-10);color:#0A7A47}
+.pill.warn{background:var(--warn-10);color:#A85A00}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.badge i{width:6px;height:6px;border-radius:9px;background:currentColor;font-style:normal}
+.muted{color:var(--ink-3)}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+h2.sec{font-size:18px;font-weight:700;margin:0}
+
+/* ===== 封面缩略图（CSS 场景，无图片） ===== */
+.thumb{border-radius:14px;overflow:hidden;position:relative;flex:none;background:#DCEFF5}
+.thumb svg{display:block;width:100%;height:100%}
+.th-a{background:linear-gradient(170deg,#7FDDEF 0%,#BFEAF3 44%,#EAF7E4 45%,#D6EDC4 100%)}
+.th-b{background:linear-gradient(170deg,#8FA9E8 0%,#C6D4F5 42%,#E8EFD6 43%,#CFE3B6 100%)}
+.th-c{background:linear-gradient(170deg,#9FDCD4 0%,#D3F0EC 44%,#F1EFD8 45%,#E2DEC0 100%)}
+.th-d{background:linear-gradient(170deg,#3B3E6B 0%,#6E6FA8 46%,#4C5A63 47%,#333D45 100%)}
+
+/* ===== P1 首页 ===== */
+.hero{padding:6px 20px 14px;background:var(--card)}
+.hero .hi{font-size:13px;color:var(--ink-3);margin:0 0 2px}
+.hero h2{font-size:26px;font-weight:800;margin:0;line-height:1.25;letter-spacing:-.01em}
+.search{margin-top:14px;height:48px;border-radius:12px;background:var(--bg);display:flex;
+  align-items:center;gap:10px;padding:0 14px;color:var(--ink-3);font-size:15px}
+.chips{display:flex;gap:8px;padding:12px 20px 14px;background:var(--card);overflow-x:auto}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:32px;padding:0 14px;border-radius:999px;background:var(--bg);color:var(--ink-2);
+  font-size:13px;font-weight:600;display:flex;align-items:center;border:0;cursor:pointer;font-family:var(--font);
+  transition:all var(--t-base)}
+.chip.on{background:var(--brand);color:#fff}
+.chip:active{transform:scale(.96)}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;padding:18px 20px 10px}
+.sechead .more{font-size:13px;color:var(--brand-h);font-weight:600}
+.camp{display:flex;gap:12px;padding:12px;margin:0 20px 12px;cursor:pointer;
+  transition:transform var(--t-base) var(--ease),box-shadow var(--t-base)}
+.camp:active{transform:scale(.98);box-shadow:var(--sh-3)}
+.camp .thumb{width:92px;height:92px}
+.camp .info{flex:1;min-width:0;display:flex;flex-direction:column}
+.camp .name{font-size:16px;font-weight:600;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.camp .meta{font-size:12.5px;color:var(--ink-3);margin:0 0 8px;display:flex;align-items:center;gap:6px}
+.camp .bottom{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between}
+.price{font-family:var(--num);font-size:18px;font-weight:800;color:var(--ink)}
+.price small{font-size:11px;font-weight:600;color:var(--ink-3);margin-left:2px;font-family:var(--font)}
+.star{color:#F79009;font-weight:700}
+
+/* ===== P2 详情 ===== */
+.hero-img{height:300px;position:relative;flex:none;background:#0F1720;overflow:hidden}
+.hero-img svg{position:absolute;inset:0;width:100%;height:100%}
+.hero-img .navbtns{position:absolute;top:10px;left:0;right:0;display:flex;justify-content:space-between;padding:0 12px;z-index:4}
+.gbtn{width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.9);border:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:transform var(--t-base)}
+.gbtn:active{transform:scale(.92)}
+.hero-cap{position:absolute;left:0;right:0;bottom:0;padding:60px 20px 18px;color:#fff;
+  background:linear-gradient(transparent,rgba(8,20,28,.72))}
+.hero-cap h2{font-size:26px;font-weight:800;margin:0 0 6px;letter-spacing:-.01em}
+.hero-cap .sub{font-size:13px;opacity:.92;display:flex;align-items:center;gap:8px}
+.sheet{background:var(--card);border-radius:22px 22px 0 0;margin-top:-18px;position:relative;z-index:3;flex:1}
+.blk{padding:18px 20px;border-bottom:1px solid var(--line)}
+.blk:last-child{border-bottom:0}
+.blk h3{font-size:15px;font-weight:700;margin:0 0 12px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px 0;text-align:center}
+.cal .wd{font-size:11px;color:var(--ink-3);font-weight:600;padding-bottom:6px}
+.cal .d{font-family:var(--num);font-size:14px;font-weight:600;height:38px;border-radius:11px;border:0;
+  background:transparent;cursor:pointer;color:var(--ink);transition:all var(--t-base);font-family:var(--num)}
+.cal .d:active{background:var(--bg)}
+.cal .d.off{color:var(--disabled);text-decoration:line-through;pointer-events:none}
+.cal .d.on{background:var(--brand);color:#fff;box-shadow:0 4px 10px rgba(15,181,214,.35)}
+.facil{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.facil div{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2)}
+.facil svg{flex:none;color:var(--brand-h)}
+.rule{display:flex;align-items:center;justify-content:space-between;font-size:14px;cursor:pointer}
+.rule .k{font-weight:600}
+.rule .v{font-size:12.5px;color:var(--ink-3);display:flex;align-items:center;gap:4px}
+.bottombar{flex:none;display:flex;align-items:center;gap:14px;padding:12px 20px;
+  background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(16,24,40,.06)}
+.bottombar .p{flex:none}
+.bottombar .p .amt{font-family:var(--num);font-size:22px;font-weight:800;line-height:1}
+.bottombar .p .unit{font-size:11px;color:var(--ink-3);margin-left:2px}
+.btn{flex:1;height:52px;border-radius:var(--r-md);border:0;background:var(--brand);color:#fff;
+  font:600 16px var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform var(--t-base) var(--ease),background var(--t-base)}
+.btn:active{transform:scale(.97)}
+.btn:hover{background:var(--brand-h)}
+.btn.sec{background:var(--brand-10);color:var(--brand-h)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink-2);font-weight:600}
+.btn.dis{background:var(--line);color:var(--disabled);cursor:not-allowed;transform:none}
+.btn[disabled]{background:var(--line);color:var(--disabled);cursor:not-allowed;transform:none}
+
+/* ===== P3 表单 ===== */
+.formrow{padding:14px 20px;background:var(--card);border-bottom:1px solid var(--line)}
+.formrow label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px}
+.inp{width:100%;height:48px;border-radius:12px;border:1.5px solid transparent;background:var(--bg);
+  padding:0 14px;font:15px var(--font);color:var(--ink);outline:none;transition:all var(--t-base)}
+.inp::placeholder{color:var(--ink-3)}
+.inp:focus{background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,181,214,.14)}
+.inp.bad{background:#fff;border-color:var(--err);box-shadow:0 0 0 3px rgba(240,68,56,.12)}
+.errmsg{display:none;margin-top:7px;font-size:12px;color:var(--err);align-items:center;gap:5px}
+.errmsg.show{display:flex}
+.daterow{display:flex;align-items:center;gap:10px}
+.dbox{flex:1;height:58px;border-radius:12px;background:var(--bg);padding:9px 14px;display:flex;
+  flex-direction:column;justify-content:center}
+.dbox .lbl{font-size:11px;color:var(--ink-3)}
+.dbox .val{font-size:15px;font-weight:700}
+.stepper{margin-left:auto;display:flex;align-items:center;gap:0;background:var(--bg);border-radius:12px;padding:4px}
+.stepper button{width:40px;height:40px;border:0;background:transparent;border-radius:9px;cursor:pointer;
+  font-size:20px;font-weight:600;color:var(--brand-h);transition:background var(--t-base)}
+.stepper button:active{background:#E1E5EC}
+.stepper button:disabled{color:var(--disabled)}
+.stepper span{min-width:52px;text-align:center;font:700 16px var(--num)}
+.fee{display:flex;justify-content:space-between;font-size:14px;color:var(--ink-2);padding:9px 0}
+.fee .v{font-family:var(--num);font-weight:600;color:var(--ink)}
+.fee.total{border-top:1px dashed var(--line);margin-top:6px;padding-top:14px;font-weight:700}
+.fee.total .lbl{font-size:15px;color:var(--ink)}
+.fee.total .v{font-size:20px;font-weight:800;color:var(--brand-h)}
+.notice{display:flex;gap:9px;background:var(--brand-10);color:var(--brand-ink);
+  border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.6;margin:16px 20px}
+
+/* ===== P4 成功 ===== */
+.success{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 26px;text-align:center}
+.tick{width:88px;height:88px;border-radius:999px;background:var(--brand-10);display:flex;
+  align-items:center;justify-content:center;color:var(--brand);animation:pop .5s var(--ease)}
+@keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.success h2{font-size:24px;font-weight:800;margin:20px 0 8px}
+.success p{margin:0;font-size:14px;color:var(--ink-2);line-height:1.6}
+.ticket{width:100%;margin-top:26px;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh-2);
+  padding:20px;text-align:left;position:relative;overflow:hidden}
+.ticket::before,.ticket::after{content:"";position:absolute;width:18px;height:18px;border-radius:9px;
+  background:var(--bg);top:132px}
+.ticket::before{left:-9px}.ticket::after{right:-9px}
+.qr{width:96px;height:96px;margin:0 auto 12px;display:block}
+.code{text-align:center;font:700 19px var(--num);letter-spacing:.22em;margin-bottom:14px}
+.tkline{border-top:1px dashed var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+.tkline div{display:flex;justify-content:space-between;font-size:13.5px}
+.tkline .t{color:var(--ink-3)}
+
+/* ===== 收藏 / 订单 / 我的 ===== */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;text-align:center}
+.empty h3{font-size:16px;font-weight:600;margin:18px 0 6px}
+.empty p{font-size:13px;color:var(--ink-3);margin:0 0 20px;line-height:1.6}
+.empty .btn{flex:none;height:44px;padding:0 26px}
+.tabbar{flex:none;height:60px;background:var(--card);border-top:1px solid var(--line);
+  display:flex;padding-bottom:env(safe-area-inset-bottom);position:relative;z-index:40}
+.tabbar.hide{display:none}
+.tab{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;cursor:pointer;color:var(--ink-3);font:500 10.5px var(--font);
+  transition:color var(--t-base)}
+.tab.on{color:var(--brand-h);font-weight:700}
+.tab:active svg{transform:scale(.9)}
+.tab svg{transition:transform var(--t-base)}
+.dotbadge{position:relative}
+.dotbadge::after{content:"";position:absolute;top:7px;right:22px;width:8px;height:8px;border-radius:9px;
+  background:var(--err);border:2px solid #fff}
+
+/* 骨架屏 */
+.sk{background:linear-gradient(90deg,#EDEFF3 25%,#F7F8FA 37%,#EDEFF3 63%);
+  background-size:200% 100%;animation:shimmer 1.4s linear infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.toast{position:absolute;left:50%;bottom:96px;transform:translate(-50%,12px);background:rgba(17,19,24,.92);
+  color:#fff;font-size:13.5px;padding:11px 18px;border-radius:12px;opacity:0;transition:all var(--t-base);
+  pointer-events:none;z-index:70;white-space:nowrap;max-width:88%}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="statusbar" id="statusbar">
+      <span class="num">9:41</span>
+      <span class="sb-r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 5.5 8.4a3.6 3.6 0 0 1 5 0L8 11.2Zm-3.6-4.4a5.9 5.9 0 0 1 7.2 0l1.2-1.4a7.8 7.8 0 0 0-9.6 0l1.2 1.4ZM8 3.4c-1.9 0-3.6.6-5 1.6L1.8 3.6A10.3 10.3 0 0 1 8 1.3c2.3 0 4.5.8 6.2 2.3l-1.2 1.4c-1.4-1-3.1-1.6-5-1.6Z"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".6" y=".6" width="21" height="10.8" rx="3.2" stroke="currentColor" stroke-opacity=".4"/><rect x="2.4" y="2.4" width="15" height="7.2" rx="1.8" fill="currentColor"/><path d="M23.4 4.2v3.6c1.1-.3 1.6-.9 1.6-1.8s-.5-1.5-1.6-1.8Z" fill="currentColor" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+
+    <div class="viewport">
+      <!-- ================= P1 首页 ================= -->
+      <section class="view flat active" id="v-home">
+        <div class="scroll">
+          <div class="hero">
+            <p class="hi">周六 · 9月12日 · 晴 26℃</p>
+            <h2>找一片草地，<br>出发吧</h2>
+            <div class="search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              搜索营地、城市或玩法
+            </div>
+          </div>
+          <div class="chips" id="chips">
+            <button class="chip on">全部</button>
+            <button class="chip">近郊</button>
+            <button class="chip">湖畔</button>
+            <button class="chip">山野</button>
+            <button class="chip">亲子</button>
+            <button class="chip">可钓鱼</button>
+          </div>
+
+          <div class="sechead"><h2 class="sec">本周热门</h2><span class="more">查看全部 ›</span></div>
+          <div id="camplist"></div>
+          <div style="height:16px"></div>
+        </div>
+      </section>
+
+      <!-- ================= P2 详情 ================= -->
+      <section class="view" id="v-detail">
+        <div class="scroll" style="background:var(--bg)">
+          <div class="hero-img">
+            <svg viewBox="0 0 390 300" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <linearGradient id="dsky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#7FDDEF"/><stop offset=".55" stop-color="#C9EEF6"/><stop offset="1" stop-color="#EAF7E4"/>
+                </linearGradient>
+              </defs>
+              <rect width="390" height="300" fill="url(#dsky)"/>
+              <circle cx="316" cy="150" r="22" fill="#fff" opacity=".55"/>
+              <path d="M0 176 L74 108 L132 168 L188 118 L252 178 L318 126 L390 182 L390 300 L0 300Z" fill="#8FC9DA" opacity=".85"/>
+              <path d="M0 208 Q98 174 196 206 T390 200 L390 300 L0 300Z" fill="#5FB9CE"/>
+              <ellipse cx="196" cy="252" rx="112" ry="26" fill="#8ED9C6" opacity=".6"/>
+              <path d="M150 250 l14-34 14 34z" fill="#F2A63B"/><path d="M186 250 l12-28 12 28z" fill="#E89128"/>
+              <rect x="146" y="248" width="56" height="4" rx="2" fill="#C87A18"/>
+            </svg>
+            <div class="navbtns">
+              <button class="gbtn" data-back aria-label="返回">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111318" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <span style="display:flex;gap:8px">
+                <button class="gbtn" id="favBtn" aria-label="收藏">
+                  <svg id="favIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111318" stroke-width="2" stroke-linecap="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1Z"/></svg>
+                </button>
+                <button class="gbtn" aria-label="分享">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111318" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L8 8m4-4 4 4"/><path d="M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg>
+                </button>
+              </span>
+            </div>
+            <div class="hero-cap">
+              <h2 id="d-name">青野湖营地</h2>
+              <div class="sub"><span class="star">★ 4.9</span><span>128 条评价</span><span>·</span><span>距你 2.3km</span></div>
+            </div>
+          </div>
+
+          <div class="sheet">
+            <div class="blk" style="padding-top:20px">
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <span class="pill">湖畔露营</span><span class="pill">可钓鱼</span>
+                <span class="pill">宠物友好</span><span class="pill">装备租赁</span><span class="pill">篝火</span>
+              </div>
+            </div>
+
+            <div class="blk">
+              <h3>可预约档期</h3>
+              <div class="cal" id="cal"></div>
+              <p style="font-size:12px;color:var(--ink-3);margin:10px 0 0">灰色日期为已满 · 旺季请提前 3 天预约</p>
+            </div>
+
+            <div class="blk">
+              <h3>设施与服务</h3>
+              <div class="facil">
+                <div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 20h18L12 5 3 20Z"/><path d="M12 5v15"/></svg>帐篷位 12 个</div>
+                <div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4h14v6a7 7 0 0 1-14 0V4Z"/><path d="M12 17v3"/></svg>淋浴热水</div>
+                <div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>卫生间 4 间</div>
+                <div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 16V8l3-4h10l3 4v8"/><rect x="3" y="14" width="18" height="5" rx="2"/></svg>车位 30 个</div>
+              </div>
+            </div>
+
+            <div class="blk">
+              <div class="rule" id="ruleRow">
+                <span class="k">退改规则</span>
+                <span class="v">入住前 48 小时免费取消
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </div>
+              <p id="ruleMore" style="display:none;font-size:12.5px;color:var(--ink-2);line-height:1.75;margin:12px 0 0">
+                · 入住前 48 小时（含）取消，全额退款<br>
+                · 入住前 24–48 小时取消，退还 50%<br>
+                · 入住前 24 小时内取消，不予退款<br>
+                · 因天气原因营地封闭，全额退款并赠送下次 8 折券
+              </p>
+            </div>
+
+            <div class="blk" style="padding-bottom:26px">
+              <h3>用户评价 <span style="font-weight:400;font-size:13px;color:var(--ink-3)">共 128 条</span></h3>
+              <div style="display:flex;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+                <div style="width:34px;height:34px;border-radius:9px;background:var(--brand-10);color:var(--brand-h);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">陈</div>
+                <div>
+                  <div style="font-size:13px;font-weight:600">陈**　<span class="star" style="font-size:11.5px">★★★★★</span></div>
+                  <p style="font-size:13.5px;color:var(--ink-2);line-height:1.65;margin:5px 0 0">湖边的位置很好，实测和照片一致，卫生间比想象中干净。帐篷是提前搭好的，拎包入住很省事。</p>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;padding-top:12px">
+                <div style="width:34px;height:34px;border-radius:9px;background:#F0F2F6;color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">刘</div>
+                <div>
+                  <div style="font-size:13px;font-weight:600">刘**　<span class="star" style="font-size:11.5px">★★★★☆</span></div>
+                  <p style="font-size:13.5px;color:var(--ink-2);line-height:1.65;margin:5px 0 0">带狗去的，草坪很大很安全。唯一缺点是晚上有点潮，建议多带一层防潮垫。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottombar">
+          <div class="p"><span class="amt num">¥128</span><span class="unit">/晚</span>
+            <div style="font-size:11px;color:var(--ink-3);margin-top:3px">含营位与基础设施</div>
+          </div>
+          <button class="btn" data-go="confirm">立即预约</button>
+        </div>
+      </section>
+
+      <!-- ================= P3 确认 ================= -->
+      <section class="view" id="v-confirm">
+        <div class="bar">
+          <button class="iconbtn" data-back aria-label="返回">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <h1>确认预约</h1><span style="width:44px"></span>
+        </div>
+        <div class="scroll">
+          <div style="margin:14px 20px 0;background:var(--card);border-radius:var(--r-md);padding:14px;display:flex;gap:12px;box-shadow:var(--sh-2)">
+            <div class="thumb th-a" style="width:56px;height:56px"><svg viewBox="0 0 92 92"><path d="M0 62 L26 38 L46 58 L64 42 L92 64 L92 92 L0 92Z" fill="#5FB9CE" opacity=".7"/><circle cx="72" cy="24" r="10" fill="#fff" opacity=".8"/></svg></div>
+            <div>
+              <div style="font-size:15px;font-weight:600">青野湖营地</div>
+              <div style="font-size:12.5px;color:var(--ink-3);margin-top:4px">A 区 · 12 号湖畔营位</div>
+            </div>
+          </div>
+
+          <div class="formrow" style="margin-top:14px">
+            <label>入住 / 退房</label>
+            <div class="daterow">
+              <div class="dbox"><span class="lbl">入住</span><span class="val">7月16日 周四</span></div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9AA0AE" stroke-width="2.4" stroke-linecap="round" style="flex:none"><path d="M5 12h14m0 0-5-5m5 5-5 5"/></svg>
+              <div class="dbox"><span class="lbl">退房</span><span class="val">7月17日 周五</span></div>
+            </div>
+          </div>
+
+          <div class="formrow" style="display:flex;align-items:center">
+            <div><label style="margin:0">入住人数</label>
+              <span style="font-size:12px;color:var(--ink-3)">每增加 1 人加收 ¥30</span></div>
+            <div class="stepper">
+              <button id="minus" aria-label="减少人数">−</button>
+              <span id="pcount" class="num">2 人</span>
+              <button id="plus" aria-label="增加人数">+</button>
+            </div>
+          </div>
+
+          <div class="formrow">
+            <label>联系人手机号</label>
+            <input class="inp" id="phone" type="tel" inputmode="numeric" placeholder="请输入 11 位手机号" maxlength="11">
+            <div class="errmsg" id="phoneErr">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.2"/></svg>
+              <span id="phoneErrTxt">手机号格式不正确</span>
+            </div>
+          </div>
+
+          <div class="formrow" style="border-bottom:0">
+            <label>费用明细</label>
+            <div class="fee"><span>营位费</span><span class="v">¥128.00 × 1 晚</span></div>
+            <div class="fee"><span>超员附加</span><span class="v" id="feeExtra">¥0.00</span></div>
+            <div class="fee"><span>平台服务费</span><span class="v">¥6.00</span></div>
+            <div class="fee total"><span class="lbl">合计</span><span class="v" id="feeTotal">¥134.00</span></div>
+          </div>
+
+          <div class="notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5M12 7.8v.2"/></svg>
+            <span>入住前 48 小时可免费取消，费用将原路退回。提交即代表同意《清野预订服务条款》。</span>
+          </div>
+          <div style="height:20px"></div>
+        </div>
+        <div class="bottombar">
+          <div class="p"><span class="amt num" id="barTotal">¥134.00</span>
+            <div style="font-size:11px;color:var(--ink-3);margin-top:3px">已含服务费</div>
+          </div>
+          <button class="btn" id="submitBtn">提交预约</button>
+        </div>
+      </section>
+
+      <!-- ================= P4 成功 ================= -->
+      <section class="view" id="v-success">
+        <div class="success">
+          <div class="tick">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          </div>
+          <h2>预约成功</h2>
+          <p>电子凭证已发送到你的手机<br>请于入住当日出示核销码</p>
+
+          <div class="ticket">
+            <svg class="qr" viewBox="0 0 96 96" fill="#111318">
+              <rect x="0" y="0" width="26" height="26" rx="3"/><rect x="70" y="0" width="26" height="26" rx="3"/>
+              <rect x="0" y="70" width="26" height="26" rx="3"/>
+              <rect x="7" y="7" width="12" height="12" fill="#fff"/><rect x="77" y="7" width="12" height="12" fill="#fff"/>
+              <rect x="7" y="77" width="12" height="12" fill="#fff"/>
+              <rect x="34" y="0" width="8" height="8"/><rect x="48" y="0" width="8" height="8"/><rect x="34" y="14" width="8" height="8"/>
+              <rect x="56" y="14" width="8" height="8"/><rect x="42" y="26" width="8" height="8"/><rect x="0" y="34" width="8" height="8"/>
+              <rect x="14" y="34" width="8" height="8"/><rect x="28" y="34" width="8" height="8"/><rect x="42" y="42" width="8" height="8"/>
+              <rect x="56" y="34" width="8" height="8"/><rect x="70" y="34" width="8" height="8"/><rect x="84" y="34" width="12" height="8"/>
+              <rect x="0" y="48" width="8" height="8"/><rect x="14" y="56" width="8" height="8"/><rect x="28" y="48" width="8" height="8"/>
+              <rect x="42" y="56" width="8" height="8"/><rect x="56" y="48" width="8" height="8"/><rect x="70" y="56" width="8" height="8"/>
+              <rect x="84" y="48" width="12" height="8"/><rect x="34" y="70" width="8" height="8"/><rect x="48" y="78" width="8" height="8"/>
+              <rect x="62" y="70" width="8" height="8"/><rect x="76" y="78" width="8" height="8"/><rect x="88" y="70" width="8" height="8"/>
+            </svg>
+            <div class="code">8 4 2 1 7 3 9 5</div>
+            <div class="tkline">
+              <div><span class="t">营地</span><span>青野湖营地 · A 区 12 号位</span></div>
+              <div><span class="t">入住</span><span class="num">7月16日 14:00 后</span></div>
+              <div><span class="t">退房</span><span class="num">7月17日 12:00 前</span></div>
+              <div><span class="t">订单号</span><span class="num">QY202607160028</span></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;width:100%;margin-top:22px">
+            <button class="btn sec" data-go="orders">查看订单</button>
+            <button class="btn" data-go="home">返回首页</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 收藏 ================= -->
+      <section class="view flat" id="v-fav">
+        <div class="bar"><h1 style="text-align:left;padding-left:8px">我的收藏</h1></div>
+        <div id="favBody" style="flex:1;display:flex;flex-direction:column"></div>
+      </section>
+
+      <!-- ================= 订单 ================= -->
+      <section class="view flat" id="v-orders">
+        <div class="bar"><h1 style="text-align:left;padding-left:8px">我的订单</h1></div>
+        <div class="scroll" id="orderBody"></div>
+      </section>
+
+      <!-- ================= 我的 ================= -->
+      <section class="view flat" id="v-me">
+        <div class="scroll" style="background:var(--bg)">
+          <div style="background:var(--card);padding:22px 20px 24px;display:flex;align-items:center;gap:14px">
+            <div style="width:60px;height:60px;border-radius:999px;background:linear-gradient(135deg,var(--brand),#7FE7FF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800">林</div>
+            <div>
+              <div style="font-size:19px;font-weight:700">林小满</div>
+              <div style="font-size:12.5px;color:var(--ink-3);margin-top:4px">138****6688 · 已实名</div>
+            </div>
+          </div>
+          <div style="display:flex;background:var(--card);border-top:1px solid var(--line);padding:16px 0">
+            <div style="flex:1;text-align:center"><div class="num" style="font-size:20px;font-weight:800">6</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:2px">订单</div></div>
+            <div style="flex:1;text-align:center"><div class="num" style="font-size:20px;font-weight:800">3</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:2px">收藏</div></div>
+            <div style="flex:1;text-align:center"><div class="num" style="font-size:20px;font-weight:800">¥286</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:2px">累计消费</div></div>
+          </div>
+
+          <div style="margin:14px 0 0">
+            <p style="font-size:12.5px;color:var(--ink-3);padding:0 20px 8px;margin:0">通知设置</p>
+            <div class="formrow" style="border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:15px">订单状态提醒</span>
+              <button class="sw on" role="switch" aria-checked="true" aria-label="订单状态提醒"><i></i></button>
+            </div>
+            <div class="formrow" style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:15px">优惠活动通知</span>
+              <button class="sw" role="switch" aria-checked="false" aria-label="优惠活动通知"><i></i></button>
+            </div>
+          </div>
+
+          <div style="margin:14px 0 0">
+            <div class="formrow" style="border-top:1px solid var(--line);display:flex;justify-content:space-between;cursor:pointer">
+              <span style="font-size:15px">清除缓存</span><span style="font-size:13.5px;color:var(--ink-3)">12.4 MB ›</span>
+            </div>
+            <div class="formrow" style="display:flex;justify-content:space-between;cursor:pointer">
+              <span style="font-size:15px">关于清野</span><span style="font-size:13.5px;color:var(--ink-3)">v2.4.0 ›</span>
+            </div>
+          </div>
+
+          <div style="padding:22px 20px 30px">
+            <button class="btn ghost" style="width:100%;color:var(--err);border-color:#FBD5D1">退出登录</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= tabbar ================= -->
+    <nav class="tabbar" id="tabbar">
+      <button class="tab on" data-tab="home" aria-label="发现">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg>
+        <span>发现</span>
+      </button>
+      <button class="tab" data-tab="fav" aria-label="收藏">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1Z"/></svg>
+        <span>收藏</span>
+      </button>
+      <button class="tab" data-tab="orders" aria-label="订单">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>
+        <span>订单</span>
+      </button>
+      <button class="tab" data-tab="me" aria-label="我的">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/></svg>
+        <span>我的</span>
+      </button>
+    </nav>
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+/* ================= 数据 ================= */
+const CAMPS = [
+  {id:'cq', name:'青野湖营地', city:'杭州·余杭', dist:'2.3km', score:'4.9', reviews:128, price:128, stock:'可订', stockCls:'ok', th:'th-a', tags:['湖畔','可钓鱼']},
+  {id:'sy', name:'山野集营地', city:'成都·都江堰', dist:'8.1km', score:'4.8', reviews:96, price:168, stock:'仅剩 3 间', stockCls:'warn', th:'th-b', tags:['山野','篝火']},
+  {id:'xg', name:'溪谷浅滩营地', city:'武汉·黄陂', dist:'15.6km', score:'4.7', reviews:64, price:98, stock:'可订', stockCls:'ok', th:'th-c', tags:['溪流','亲子']},
+  {id:'sl', name:'松林星空营地', city:'北京·延庆', dist:'61km', score:'4.9', reviews:210, price:258, stock:'已满', stockCls:'gray', th:'th-d', tags:['星空','观星']}
+];
+const SCENE = {
+  'th-a':'<path d="M0 62 L26 38 L46 58 L64 42 L92 64 L92 92 L0 92Z" fill="#5FB9CE" opacity=".72"/><circle cx="72" cy="24" r="10" fill="#fff" opacity=".8"/>',
+  'th-b':'<path d="M0 66 L22 30 L44 60 L66 34 L92 68 L92 92 L0 92Z" fill="#7C8FD6" opacity=".62"/><circle cx="76" cy="22" r="8" fill="#fff" opacity=".75"/>',
+  'th-c':'<path d="M0 70 L28 50 L52 68 L74 52 L92 70 L92 92 L0 92Z" fill="#6FBFAE" opacity=".68"/><ellipse cx="46" cy="80" rx="34" ry="9" fill="#fff" opacity=".5"/>',
+  'th-d':'<path d="M0 60 L24 34 L50 62 L70 40 L92 66 L92 92 L0 92Z" fill="#8E93C9" opacity=".55"/><circle cx="70" cy="20" r="7" fill="#fff" opacity=".9"/><circle cx="24" cy="16" r="3" fill="#fff" opacity=".8"/><circle cx="88" cy="30" r="2.4" fill="#fff" opacity=".7"/>'
+};
+const thumbHtml = c => `<div class="thumb ${c.th}"><svg viewBox="0 0 92 92">${SCENE[c.th]}</svg></div>`;
+
+const FAV_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111318" stroke-width="2" stroke-linecap="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1Z"/></svg>';
+const FAV_ICON_ON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#F04438" stroke="#F04438" stroke-width="2" stroke-linecap="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1Z"/></svg>';
+
+const state = { view:'home', stack:[], camp:'cq', pax:2, fav:new Set(['cq','xg']), selectedDay:16 };
+
+/* ================= 渲染 ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+$('#camplist').innerHTML = CAMPS.map(c => `
+  <article class="camp card" data-camp="${c.id}">
+    ${thumbHtml(c)}
+    <div class="info">
+      <h3 class="name">${c.name}</h3>
+      <p class="meta"><span class="star">★ ${c.score}</span><span>${c.reviews} 条评价</span><span>·</span><span>${c.dist}</span></p>
+      <div class="bottom">
+        <span class="price num">¥${c.price}<small>/晚</small></span>
+        <span class="pill ${c.stockCls === 'gray' ? 'gray' : c.stockCls}">${c.stock}</span>
+      </div>
+    </div>
+  </article>`).join('');
+
+// 日历
+(function buildCal(){
+  let h = ['一','二','三','四','五','六','日'].map(d => `<div class="wd">${d}</div>`).join('');
+  const sold = [10,11,21,22,23];
+  for(let d=1; d<=30; d++){
+    const cls = ['d']; if(sold.includes(d)) cls.push('off'); if(d === state.selectedDay) cls.push('on');
+    h += `<button class="${cls.join(' ')}" data-day="${d}" ${sold.includes(d) ? 'disabled' : ''}>${d}</button>`;
+  }
+  $('#cal').innerHTML = h;
+})();
+
+/* ================= 路由 ================= */
+function show(name, push){
+  if(name === state.view) return;
+  if(push !== false) state.stack.push(state.view);
+  $$('.view').forEach(v => v.classList.remove('behind'));
+  const cur = $('#v-' + state.view);
+  const next = $('#v-' + name);
+  if(cur && cur !== next) cur.classList.add('behind');
+  next.classList.add('active');
+  state.view = name;
+  // tabbar 只在一级页显示
+  const top = ['home','fav','orders','me'];
+  $('#tabbar').classList.toggle('hide', !top.includes(name));
+  $$('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
+  if(name === 'fav') renderFav();
+}
+function back(){
+  const prev = state.stack.pop() || 'home';
+  $$('.view').forEach(v => v.classList.remove('behind'));
+  const cur = $('#v-' + state.view);
+  if(cur) cur.classList.remove('active');
+  const prevEl = $('#v-' + prev);
+  prevEl.classList.remove('behind');
+  prevEl.classList.add('active');
+  state.view = prev;
+  const top = ['home','fav','orders','me'];
+  $('#tabbar').classList.toggle('hide', !top.includes(prev));
+  $$('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === prev));
+  if(prev === 'fav') renderFav();
+}
+
+/* ================= 交互 ================= */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-back],[data-go],[data-tab],[data-camp]');
+  if(!t) return;
+  if(t.hasAttribute('data-back')) return back();
+  if(t.dataset.go) return show(t.dataset.go);
+  if(t.dataset.tab) return show(t.dataset.tab);
+  if(t.dataset.camp){
+    const c = CAMPS.find(x => x.id === t.dataset.camp);
+    state.camp = c.id;
+    $('#d-name').textContent = c.name;
+    $('#favBtn').innerHTML = state.fav.has(c.id) ? FAV_ICON_ON : FAV_ICON;
+    show('detail');
+  }
+});
+
+// chips
+$('#chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if(!c) return;
+  $$('#chips .chip').forEach(x => x.classList.remove('on'));
+  c.classList.add('on');
+});
+
+// 日历选择
+$('#cal').addEventListener('click', e => {
+  const d = e.target.closest('.d'); if(!d || d.disabled) return;
+  $$('#cal .d').forEach(x => x.classList.remove('on'));
+  d.classList.add('on');
+  state.selectedDay = +d.dataset.day;
+});
+
+// 退改规则展开
+$('#ruleRow').addEventListener('click', () => {
+  const m = $('#ruleMore');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+});
+
+// 收藏
+$('#favBtn').addEventListener('click', () => {
+  const id = state.camp;
+  state.fav.has(id) ? state.fav.delete(id) : state.fav.add(id);
+  const on = state.fav.has(id);
+  $('#favBtn').innerHTML = on ? FAV_ICON_ON : FAV_ICON;
+  toast(on ? '已加入收藏' : '已取消收藏');
+});
+
+// 人数 stepper
+function renderPax(){
+  $('#pcount').textContent = state.pax + ' 人';
+  $('#minus').disabled = state.pax <= 1;
+  const extra = Math.max(0, state.pax - 2) * 30;
+  const total = 128 + extra + 6;
+  $('#feeExtra').textContent = '¥' + extra.toFixed(2);
+  $('#feeTotal').textContent = '¥' + total.toFixed(2);
+  $('#barTotal').textContent = '¥' + total.toFixed(2);
+}
+$('#minus').onclick = () => { if(state.pax > 1){ state.pax--; renderPax(); } };
+$('#plus').onclick  = () => { if(state.pax < 8){ state.pax++; renderPax(); } };
+renderPax();
+
+// 手机号校验
+const phoneEl = $('#phone');
+phoneEl.addEventListener('input', () => {
+  phoneEl.value = phoneEl.value.replace(/\D/g, '').slice(0, 11);
+  if(phoneEl.classList.contains('bad')) validatePhone();
+});
+function validatePhone(){
+  const v = phoneEl.value.trim();
+  const bad = $('#phoneErr');
+  if(!v){ phoneEl.classList.add('bad'); $('#phoneErrTxt').textContent = '请填写联系人手机号'; bad.classList.add('show'); return false; }
+  if(!/^1[3-9]\d{9}$/.test(v)){ phoneEl.classList.add('bad'); $('#phoneErrTxt').textContent = '手机号格式不正确，请检查后重试'; bad.classList.add('show'); return false; }
+  phoneEl.classList.remove('bad'); bad.classList.remove('show'); return true;
+}
+
+// 提交
+$('#submitBtn').addEventListener('click', function(){
+  if(!validatePhone()){
+    phoneEl.scrollIntoView({behavior:'smooth', block:'center'});
+    phoneEl.focus();
+    return;
+  }
+  const btn = this;
+  btn.disabled = true;
+  btn.textContent = '提交中…';
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = '提交预约';
+    state.stack = [];
+    show('success', false);
+    state.stack = ['home'];
+  }, 900);
+});
+
+// 收藏页
+function renderFav(){
+  const list = CAMPS.filter(c => state.fav.has(c.id));
+  const body = $('#favBody');
+  if(!list.length){
+    body.innerHTML = `<div class="empty">
+      <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#C9E9F1" stroke-width="1.2" stroke-linecap="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1Z"/></svg>
+      <h3>还没有收藏的营地</h3>
+      <p>看到喜欢的营地，点右上角的心形就能收藏，方便下次快速找到。</p>
+      <button class="btn" data-go="home">去看看</button>
+    </div>`;
+    return;
+  }
+  body.innerHTML = `<div class="scroll" style="padding-top:12px">` + list.map(c => `
+    <article class="camp card" data-camp="${c.id}">
+      ${thumbHtml(c)}
+      <div class="info">
+        <h3 class="name">${c.name}</h3>
+        <p class="meta"><span class="star">★ ${c.score}</span><span>${c.reviews} 条评价</span><span>·</span><span>${c.dist}</span></p>
+        <div class="bottom"><span class="price num">¥${c.price}<small>/晚</small></span>
+          <span class="pill ${c.stockCls === 'gray' ? 'gray' : c.stockCls}">${c.stock}</span></div>
+      </div>
+    </article>`).join('') + `</div>`;
+}
+renderFav();
+
+// 订单页
+$('#orderBody').innerHTML = `
+  <div class="card" style="margin:14px 20px 12px;padding:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:13px;color:var(--ink-3)" class="num">QY202607160028</span>
+      <span class="badge" style="color:#0A7A47"><i></i>待入住</span>
+    </div>
+    ${thumbHtml(CAMPS[0]).replace('class="thumb','style="width:64px;height:64px" class="thumb')}
+    <div style="display:flex;gap:12px;margin-top:12px">
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600">青野湖营地</div>
+        <div style="font-size:12.5px;color:var(--ink-3);margin-top:4px">7月16日 — 7月17日 · 2 人</div>
+      </div>
+      <div style="text-align:right"><span class="num" style="font-size:17px;font-weight:800">¥134</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">
+      <button class="btn ghost" style="flex:none;height:36px;padding:0 16px;font-size:13.5px">取消预约</button>
+      <button class="btn" style="flex:none;height:36px;padding:0 18px;font-size:13.5px">出示核销码</button>
+    </div>
+  </div>
+  <div class="card" style="margin:0 20px 12px;padding:16px;opacity:.72">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:13px;color:var(--ink-3)" class="num">QY202606020011</span>
+      <span class="badge" style="color:var(--ink-3)"><i></i>已完成</span>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600">溪谷浅滩营地</div>
+        <div style="font-size:12.5px;color:var(--ink-3);margin-top:4px">6月2日 — 6月3日 · 3 人</div>
+      </div>
+      <div style="text-align:right"><span class="num" style="font-size:17px;font-weight:800">¥152</span></div>
+    </div>
+  </div>`;
+
+// switch
+document.addEventListener('click', e => {
+  const sw = e.target.closest('.sw'); if(!sw) return;
+  sw.classList.toggle('on');
+  sw.setAttribute('aria-checked', sw.classList.contains('on'));
+});
+
+// toast
+let toastTimer;
+function toast(msg){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1600);
+}
+
+// 键盘 Esc 返回
+document.addEventListener('keydown', e => { if(e.key === 'Escape') back(); });
+
+// 深链接：#detail / #confirm / #success / #fav / #orders / #me —— 便于逐屏预览与截图
+(function deepLink(){
+  const h = location.hash.replace('#','');
+  const ok = ['home','detail','confirm','success','fav','orders','me'];
+  if(h && ok.includes(h)){
+    state.view = 'home';
+    if(h === 'home') return;
+    show(h, false);
+    state.stack = ['home'];
+  }
+})();
+</script>
+<style>
+.sw{width:50px;height:30px;border-radius:999px;background:#DCE0E8;border:0;position:relative;cursor:pointer;
+  transition:background var(--t-base);flex:none;padding:0}
+.sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:999px;background:#fff;
+  transition:transform var(--t-base) var(--ease);box-shadow:0 1px 3px rgba(16,24,40,.2)}
+.sw.on{background:var(--brand)}
+.sw.on i{transform:translateX(20px)}
+</style>
+</body>
+</html>
