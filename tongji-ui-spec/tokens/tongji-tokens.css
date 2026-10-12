@@ -1,0 +1,240 @@
+/* ============================================================
+ * 同济大学信息系统 UI 设计规范 · 设计令牌
+ * 来源：《同济大学信息系统用户交互规范（试运行版 20240628）》
+ * 色阶基值取自规范文本，10 级色阶由规范色板图采样还原
+ * （JPEG 采样存在 ±1 误差，基值以规范文本为准）
+ * ============================================================ */
+
+:root {
+  /* ---------- 主色 Primary ---------- */
+  /* 主色 A：常规用途（主按钮、图标色、文字链、局部背景） */
+  --tj-primary-a-100: #03163E;
+  --tj-primary-a-200: #052057;
+  --tj-primary-a-300: #042970;
+  --tj-primary-a-400: #07338A;
+  --tj-primary-a-500: #083DA6; /* 基值 */
+  --tj-primary-a-600: #315DB4;
+  --tj-primary-a-700: #597EC4;
+  --tj-primary-a-800: #849DD5;
+  --tj-primary-a-900: #AEBEE0;
+  --tj-primary-a-950: #D6DFF0;
+
+  /* 主色 B：庆祝/纪念场景（校方要求时使用），与 A 不同时使用 */
+  --tj-primary-b-100: #491100;
+  --tj-primary-b-200: #6B1B00;
+  --tj-primary-b-300: #8B2300;
+  --tj-primary-b-400: #AB2A00;
+  --tj-primary-b-500: #CC3300; /* 基值 */
+  --tj-primary-b-600: #D34E23;
+  --tj-primary-b-700: #DB6944;
+  --tj-primary-b-800: #E08566;
+  --tj-primary-b-900: #E6A087;
+  --tj-primary-b-950: #EEBBAA;
+
+  /* ---------- 辅助色/高亮色 Secondary / Accents ---------- */
+  /* 橙 #FF9900 */
+  --tj-accent-orange-100: #5C3700;
+  --tj-accent-orange-200: #855000;
+  --tj-accent-orange-300: #AD6800;
+  --tj-accent-orange-400: #D68100;
+  --tj-accent-orange-500: #FF9900; /* 基值 */
+  --tj-accent-orange-600: #FEA928;
+  --tj-accent-orange-700: #FEB951;
+  --tj-accent-orange-800: #FFC979;
+  --tj-accent-orange-900: #FFDAA3;
+  --tj-accent-orange-950: #FFEACA;
+
+  /* 绿 #30F090 */
+  --tj-accent-green-100: #125536;
+  --tj-accent-green-200: #197D4B;
+  --tj-accent-green-300: #21A462;
+  --tj-accent-green-400: #28C979;
+  --tj-accent-green-500: #30F090; /* 基值 */
+  --tj-accent-green-600: #51F2A2;
+  --tj-accent-green-700: #72F5B3;
+  --tj-accent-green-800: #93F7C5;
+  --tj-accent-green-900: #B5F8D5;
+  --tj-accent-green-950: #D5FCE9;
+
+  /* 紫 #A80AF2 */
+  --tj-accent-purple-100: #3B0457;
+  --tj-accent-purple-200: #58047E;
+  --tj-accent-purple-300: #7207A5;
+  --tj-accent-purple-400: #8E08CB;
+  --tj-accent-purple-500: #A80AF2; /* 基值 */
+  --tj-accent-purple-600: #B531F4;
+  --tj-accent-purple-700: #C257F5;
+  --tj-accent-purple-800: #D27EF8;
+  --tj-accent-purple-900: #E0A4FA;
+  --tj-accent-purple-950: #EFCBFB;
+
+  /* 粉/红 #E8316E */
+  --tj-accent-pink-100: #541220;
+  --tj-accent-pink-200: #7A192C;
+  --tj-accent-pink-300: #9F2137;
+  --tj-accent-pink-400: #C32945;
+  --tj-accent-pink-500: #E8316E; /* 基值 */
+  --tj-accent-pink-600: #EC526E;
+  --tj-accent-pink-700: #F0758A;
+  --tj-accent-pink-800: #F496A8;
+  --tj-accent-pink-900: #F9B7C5;
+  --tj-accent-pink-950: #FCD9DF;
+
+  /* 青 #0ECAF0 */
+  --tj-accent-cyan-100: #054956;
+  --tj-accent-cyan-200: #06697E;
+  --tj-accent-cyan-300: #0989A2;
+  --tj-accent-cyan-400: #0BAACA;
+  --tj-accent-cyan-500: #0ECAF0; /* 基值 */
+  --tj-accent-cyan-600: #34D3F1;
+  --tj-accent-cyan-700: #5BDBF6;
+  --tj-accent-cyan-800: #80E3F8;
+  --tj-accent-cyan-900: #A7EDF9;
+  --tj-accent-cyan-950: #CDF3FC;
+
+  /* ---------- 中性色 Neutrals（10 级，背景/过渡色块） ---------- */
+  --tj-neutral-000: #000000;
+  --tj-neutral-100: #292929;
+  --tj-neutral-200: #535353;
+  --tj-neutral-300: #7C7C7C;
+  --tj-neutral-400: #A6A6A6;
+  --tj-neutral-500: #CFCFCF;
+  --tj-neutral-600: #DFDFDF;
+  --tj-neutral-700: #E7E7E7;
+  --tj-neutral-800: #EFEFEF;
+  --tj-neutral-900: #F7F7F7;
+
+  /* ---------- 系统通知 Feedback ---------- */
+  /* 成功 Success #07F757 */
+  --tj-success-100: #045922;
+  --tj-success-200: #04802C;
+  --tj-success-300: #05A83B;
+  --tj-success-400: #06D04A;
+  --tj-success-500: #07F757; /* 基值 */
+  --tj-success-600: #30FA74;
+  --tj-success-700: #58FA8D;
+  --tj-success-800: #81FAAA;
+  --tj-success-900: #A4FBC4;
+  --tj-success-950: #D1FEDF;
+
+  /* 警告 Warning #FAE900 */
+  --tj-warning-100: #5A5400;
+  --tj-warning-200: #827900;
+  --tj-warning-300: #AB9E00;
+  --tj-warning-400: #D2C401;
+  --tj-warning-500: #FAE900; /* 基值 */
+  --tj-warning-600: #FBED2A;
+  --tj-warning-700: #FDF052;
+  --tj-warning-800: #FDF47D;
+  --tj-warning-900: #FEF7A9;
+  --tj-warning-950: #FEFBD0;
+
+  /* 提醒 Information #002EE7 */
+  --tj-info-100: #011053;
+  --tj-info-200: #001878;
+  --tj-info-300: #001F9C;
+  --tj-info-400: #0226C2;
+  --tj-info-500: #002EE7; /* 基值 */
+  --tj-info-600: #2A4EED;
+  --tj-info-700: #5170EF;
+  --tj-info-800: #7991F3;
+  --tj-info-900: #A3B2F7;
+  --tj-info-950: #CAD3FA;
+
+  /* 危险 Error #DB0000 */
+  --tj-error-100: #4F0101;
+  --tj-error-200: #720000;
+  --tj-error-300: #950101;
+  --tj-error-400: #B80000;
+  --tj-error-500: #DB0000; /* 基值 */
+  --tj-error-600: #E12B2A;
+  --tj-error-700: #E75353;
+  --tj-error-800: #E67A7A;
+  --tj-error-900: #F3A7A7;
+  --tj-error-950: #F8D0D0;
+
+  /* ---------- 文本 Text ---------- */
+  --tj-text-primary: #000000;
+  --tj-text-inverse: #FFFFFF;
+
+  /* ---------- 字体 ---------- */
+  --tj-font-pc-cn: "Microsoft YaHei", "Ping Fang SC", "Noto Sans SC", sans-serif;
+  --tj-font-pc-en: "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+  --tj-font-mac-cn: "Ping Fang SC", "Microsoft YaHei", sans-serif;
+  --tj-font-mac-en: "Helvetica Neue", "Segoe UI", sans-serif;
+  --tj-font-ios-en: "San Francisco", -apple-system, sans-serif;
+  --tj-font-android-en: Roboto, "Noto Sans", sans-serif;
+
+  /* ---------- 字号（PC 端） ---------- */
+  --tj-font-size-h1: 36px;  --tj-line-h1: 1.25;
+  --tj-font-size-h2: 28px;  --tj-line-h2: 1.25;
+  --tj-font-size-h3: 24px;  --tj-line-h3: 1.4;
+  --tj-font-size-h4: 21px;  --tj-line-h4: 1.5;
+  --tj-font-size-body: 16px;      --tj-line-body: 1.6;
+  --tj-font-size-body-sm: 14px;   --tj-line-body-sm: 1.6;
+  --tj-font-size-caption: 12px;   --tj-line-caption: 1.6;
+
+  /* ---------- 字号（移动端） ---------- */
+  --tj-font-size-m-title-xl: 32px; /* 标题 */
+  --tj-font-size-m-title: 24px;
+  --tj-font-size-m-body: 16px;     /* 正文 */
+  --tj-font-size-m-button: 16px;   /* 按钮文字 */
+  --tj-font-size-m-caption: 12px;  /* 提示信息/标签 */
+  --tj-line-height-mobile: 1.5;
+
+  /* ---------- 布局（PC 端） ---------- */
+  --tj-header-height: 64px;        /* 头部区域高度 */
+  --tj-sider-width: 240px;         /* 左侧导航固定宽度 */
+  --tj-content-gap-left: 24px;     /* 内容区距左侧导航 */
+  --tj-content-gap-top: 16px;      /* 内容区距顶部页签 */
+  --tj-space-unit: 8px;            /* 最小距离单元，允许 0.5 单元（4px） */
+  --tj-min-page-width: 1200px;     /* 页面缩放支持的最小设备宽度 */
+
+  /* ---------- 组件尺寸（PC 端） ---------- */
+  --tj-btn-height-lg: 72px;
+  --tj-btn-height-md: 48px;   /* 默认 */
+  --tj-btn-height-sm: 32px;
+  --tj-btn-radius: 9.6px;
+  --tj-btn-min-width: 80px;
+  --tj-btn-padding-x: 16px;
+  --tj-btn-disabled-opacity: 0.4; /* 统一灰态 */
+
+  --tj-input-height-lg: 40px;
+  --tj-input-height-md: 32px;
+  --tj-input-height-sm: 24px;
+  --tj-select-width-sm: 240px; /* 240*32 */
+  --tj-select-width-md: 360px; /* 360*32 */
+  --tj-table-row-height: 40px;
+
+  --tj-dialog-op-width: 504px;  /* 操作类弹窗固定尺寸 504*176 */
+  --tj-dialog-op-height: 176px;
+  --tj-dialog-min-height: 320px;
+  --tj-dialog-max-height: 600px;
+
+  --tj-loading-mask-bg: #FFFFFF;
+  --tj-loading-mask-opacity: 0.7;
+  --tj-toast-duration: 3s;
+
+  /* ---------- 组件尺寸（移动端） ---------- */
+  --tj-m-btn-height-lg: 62px;
+  --tj-m-btn-height-md: 48px; /* 默认 */
+  --tj-m-btn-height-sm: 32px;
+  --tj-m-btn-radius: 9.6px;
+  --tj-m-input-height: 80px;  /* 约 80–100px */
+  --tj-m-tabbar-height: 32px; /* 底部标签栏 */
+  --tj-m-tabbar-max-items: 5;
+  --tj-m-dialog-width-ratio: 80%; /* 弹窗宽度为屏宽 80% */
+  --tj-m-icon-size: 36px;          /* 图标按钮 36*36，内容占满格约 80% */
+}
+
+/* ---------- 语义别名（推荐在业务代码中使用） ---------- */
+:root {
+  --tj-primary: var(--tj-primary-a-500);
+  --tj-primary-hover: var(--tj-primary-a-400);   /* 悬停：饱和度降低 15% */
+  --tj-primary-active: var(--tj-primary-a-600);  /* 点击：饱和度提高 15% */
+  --tj-bg-page: var(--tj-neutral-900);           /* 页面背景接近白 */
+  --tj-bg-block: #FFFFFF;
+  --tj-border: var(--tj-neutral-500);
+  --tj-text-secondary: var(--tj-neutral-200);
+  --tj-text-disabled: var(--tj-neutral-300);
+}

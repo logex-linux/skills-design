@@ -1,0 +1,103 @@
+{
+  "$schema": "https://design-tokens.org/schema.json",
+  "name": "tongji-ui-spec",
+  "version": "20240628",
+  "source": "《同济大学信息系统用户交互规范（试运行版 20240628）》",
+  "note": "色阶基值取自规范文本；10 级色阶由规范色板图采样还原，JPEG 采样存在 ±1 误差，基值以规范文本为准。",
+  "color": {
+    "primary": {
+      "A": {
+        "usage": "常规用途：主按钮、图标色、文字链、局部背景",
+        "base": "#083DA6",
+        "ramp": ["#03163E", "#052057", "#042970", "#07338A", "#083DA6", "#315DB4", "#597EC4", "#849DD5", "#AEBEE0", "#D6DFF0"]
+      },
+      "B": {
+        "usage": "庆祝/纪念场景（校方要求时），与 A 不同时使用",
+        "base": "#CC3300",
+        "ramp": ["#491100", "#6B1B00", "#8B2300", "#AB2A00", "#CC3300", "#D34E23", "#DB6944", "#E08566", "#E6A087", "#EEBBAA"]
+      }
+    },
+    "secondary": {
+      "orange": { "base": "#FF9900", "ramp": ["#5C3700", "#855000", "#AD6800", "#D68100", "#FF9900", "#FEA928", "#FEB951", "#FFC979", "#FFDAA3", "#FFEACA"] },
+      "green":  { "base": "#30F090", "ramp": ["#125536", "#197D4B", "#21A462", "#28C979", "#30F090", "#51F2A2", "#72F5B3", "#93F7C5", "#B5F8D5", "#D5FCE9"] },
+      "purple": { "base": "#A80AF2", "ramp": ["#3B0457", "#58047E", "#7207A5", "#8E08CB", "#A80AF2", "#B531F4", "#C257F5", "#D27EF8", "#E0A4FA", "#EFCBFB"] },
+      "pink":   { "base": "#E8316E", "ramp": ["#541220", "#7A192C", "#9F2137", "#C32945", "#E8316E", "#EC526E", "#F0758A", "#F496A8", "#F9B7C5", "#FCD9DF"] },
+      "cyan":   { "base": "#0ECAF0", "ramp": ["#054956", "#06697E", "#0989A2", "#0BAACA", "#0ECAF0", "#34D3F1", "#5BDBF6", "#80E3F8", "#A7EDF9", "#CDF3FC"] }
+    },
+    "neutrals": {
+      "note": "10 种色深，用于背景、过渡色块；中性色作背景避免中等灰度",
+      "ramp": ["#000000", "#292929", "#535353", "#7C7C7C", "#A6A6A6", "#CFCFCF", "#DFDFDF", "#E7E7E7", "#EFEFEF", "#F7F7F7"]
+    },
+    "feedback": {
+      "success": { "base": "#07F757", "ramp": ["#045922", "#04802C", "#05A83B", "#06D04A", "#07F757", "#30FA74", "#58FA8D", "#81FAAA", "#A4FBC4", "#D1FEDF"] },
+      "warning": { "base": "#FAE900", "ramp": ["#5A5400", "#827900", "#AB9E00", "#D2C401", "#FAE900", "#FBED2A", "#FDF052", "#FDF47D", "#FEF7A9", "#FEFBD0"] },
+      "info":    { "base": "#002EE7", "ramp": ["#011053", "#001878", "#001F9C", "#0226C2", "#002EE7", "#2A4EED", "#5170EF", "#7991F3", "#A3B2F7", "#CAD3FA"] },
+      "error":   { "base": "#DB0000", "ramp": ["#4F0101", "#720000", "#950101", "#B80000", "#DB0000", "#E12B2A", "#E75353", "#E67A7A", "#F3A7A7", "#F8D0D0"] }
+    },
+    "text": { "primary": "#000000", "inverse": "#FFFFFF" }
+  },
+  "font": {
+    "families": {
+      "windows": { "cn": "Microsoft YaHei 微软雅黑", "en": "Segoe UI", "weights": { "cn": ["Bold", "Regular"], "en": ["Bold", "Regular"] } },
+      "mac":     { "cn": "Ping Fang SC 苹方简体", "en": "Helvetica Neue", "weights": { "cn": ["Semibold", "Regular"], "en": ["Medium", "Regular"] } },
+      "ios":     { "cn": "Ping Fang SC", "en": "San Francisco" },
+      "android": { "cn": "系统内嵌中文字体", "en": "Roboto 或系统内嵌字体" },
+      "openSourceFallbacks": ["Roboto", "Segoe UI", "San Francisco", "Noto Sans"]
+    },
+    "scalePC": [
+      { "token": "H1", "role": "大标题", "size": 36, "lineHeight": 1.25 },
+      { "token": "H2", "role": "主标题", "size": 28, "lineHeight": 1.25 },
+      { "token": "H3", "role": "次标题", "size": 24, "lineHeight": 1.4 },
+      { "token": "H4", "role": "小标题", "size": 21, "lineHeight": 1.5 },
+      { "token": "Body", "role": "正文", "size": 16, "lineHeight": 1.6 },
+      { "token": "Body-sm", "role": "辅助文字", "size": 14, "lineHeight": 1.6 },
+      { "token": "Caption", "role": "说明文字", "size": 12, "lineHeight": 1.6 }
+    ],
+    "scaleMobile": {
+      "title": [16, 18, 20, 24, 32],
+      "button": [12, 16, 20],
+      "body": [12, 16, 20],
+      "hint": [12],
+      "label": [12],
+      "lineHeight": 1.5
+    }
+  },
+  "layout": {
+    "pc": {
+      "regions": ["顶部操作区（全局菜单/切换用户/个人中心）", "左侧导航区", "右侧内容展示与工作区"],
+      "headerHeight": 64,
+      "siderWidth": 240,
+      "contentGapLeft": 24,
+      "contentGapTop": 16,
+      "spaceUnit": 8,
+      "spaceUnitHalf": 4,
+      "minPageWidth": 1200
+    },
+    "mobile": {
+      "regions": ["头部区域", "内容区域", "底部标签栏"],
+      "tabBarMaxItems": 5,
+      "tabBarHeight": 32
+    }
+  },
+  "components": {
+    "pc": {
+      "button": { "heights": { "lg": 72, "md": 48, "sm": 32 }, "radius": 9.6, "minWidth": 80, "paddingX": 16, "states": ["default", "hover", "active", "disabled"], "hover": "饱和度降低15%", "active": "饱和度提高15%", "disabledOpacity": 0.4 },
+      "input": { "heights": [40, 32, 24], "states": ["default", "focus", "disabled"], "clearButton": true, "labelAlign": "right", "valueAlign": "left", "numberStepper": true },
+      "select": { "sizes": ["240x32", "360x32"], "searchThreshold": 10, "states": ["default", "open", "disabled"], "clearable": true, "partialDisabledOptions": true },
+      "table": { "rowHeight": 40, "columnResizable": true, "freezeImportantColumns": true, "textAlign": { "variableLength": "left", "fixedLength": "center" }, "minWidth": 1200 },
+      "dialog": { "operationSize": "504x176", "otherWidths": [600, 1000, 1200], "minHeight": 320, "maxHeight": 600, "confirmRight": true, "cancelLeft": true, "centered": true },
+      "toast": { "duration": 3, "position": "corner", "closable": true, "types": ["success", "warning", "info", "error"] },
+      "loading": { "sizes": [18, 36, 64], "maskColor": "#FFFFFF", "maskOpacity": 0.7 },
+      "badge": { "position": "top-right", "withCount": true },
+      "chart": { "library": "ECharts", "style": "开源图表库默认风格，与系统配色和文字保持一致" }
+    },
+    "mobile": {
+      "button": { "heights": { "lg": 62, "md": 48, "sm": 32 }, "radius": 9.6, "color": "#083DA6" },
+      "iconButton": { "size": "36x36", "ratio": "1:1", "fillRatio": 0.8, "color": "#083DA6", "consistentAcrossPlatforms": true },
+      "input": { "height": "80-100", "labelAlign": "left", "requiredMark": true, "clearButton": true, "hintColor": "#DB0000", "placeholderGray": "中等灰色" },
+      "dialog": { "width": "80% screen", "closable": true, "zones": ["标题区", "内容区"], "confirmRight": true, "cancelLeft": true },
+      "badge": { "positions": ["四角之一"], "reminderPosition": "top-right", "withCount": true },
+      "card": { "purpose": "同一主题功能/组件/信息集中展示" }
+    }
+  }
+}
